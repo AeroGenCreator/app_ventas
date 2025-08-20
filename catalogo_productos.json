@@ -1,0 +1,92 @@
+{
+    "nombre": [
+        "Tubo Pvc",
+        "Tubo Pvc",
+        "Tubo Pvc",
+        "Tubo Cobre",
+        "Yeso",
+        "Loza Cobre Rojo 3%",
+        "Pilas A.A.",
+        "Pilas A.A.A"
+    ],
+    "cantidad": [
+        5,
+        2,
+        4,
+        6,
+        10,
+        1,
+        5,
+        3
+    ],
+    "unidad": [
+        "Pz (s)",
+        "Pz (s)",
+        "Pz (s)",
+        "Pz (s)",
+        "Pz (s)",
+        "Caja (s)",
+        "Empaque (s)",
+        "Empaque (s)"
+    ],
+    "dimension": [
+        3.0,
+        6.0,
+        2.0,
+        1.0,
+        0.5,
+        30.0,
+        10.0,
+        5.0
+    ],
+    "u_de_medida": [
+        "Pulgada (s)",
+        "Pulgada (s)",
+        "Pulgada (s)",
+        "Pulgada (s)",
+        "Kg",
+        "Pz (s)",
+        "Pz (s)",
+        "Pz (s)"
+    ],
+    "precio_compra": [
+        250.0,
+        350.0,
+        100.0,
+        100.0,
+        20.0,
+        800.0,
+        20.0,
+        25.0
+    ],
+    "precio_catalogo": [
+        350.0,
+        450.0,
+        250.0,
+        233.0,
+        50.0,
+        1500.0,
+        45.0,
+        45.0
+    ],
+    "valor_bruto": [
+        1750.0,
+        900.0,
+        1000.0,
+        1398.0,
+        500.0,
+        1500.0,
+        225.0,
+        135.0
+    ],
+    "margen_ingreso": [
+        500.0,
+        200.0,
+        600.0,
+        798.0,
+        300.0,
+        700.0,
+        125.0,
+        60.0
+    ]
+}
