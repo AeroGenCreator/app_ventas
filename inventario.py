@@ -28,8 +28,6 @@ def entrada_al_catalogo(entrada:list):
                     catalogo_productos['u_de_medida'].append(entrada[4])
                     catalogo_productos['precio_compra'].append(entrada[5])
                     catalogo_productos['precio_catalogo'].append(entrada[6])
-                    catalogo_productos['valor_bruto'].append(entrada[7])
-                    catalogo_productos['margen_ingreso'].append(entrada[8])
 
             with open(PATH_PRODUCTOS, 'w', encoding='utf-8') as e_file:
                 json.dump(catalogo_productos, e_file, indent=4, ensure_ascii=False)
@@ -46,9 +44,7 @@ def entrada_al_catalogo(entrada:list):
                     'dimension':[entrada[3]],
                     'u_de_medida':[entrada[4]],
                     'precio_compra':[entrada[5]],
-                    'precio_catalogo':[entrada[6]],
-                    'valor_bruto':[entrada[7]],
-                    'margen_ingreso':[entrada[8]],
+                    'precio_catalogo':[entrada[6]]
                 }
 
                 json.dump(creacion_else, ex_file, indent=4, ensure_ascii=False)
@@ -66,9 +62,7 @@ def entrada_al_catalogo(entrada:list):
                 'dimension':[entrada[3]],
                 'u_de_medida':[entrada[4]],
                 'precio_compra':[entrada[5]],
-                'precio_catalogo':[entrada[6]],
-                'valor_bruto':[entrada[7]],
-                'margen_ingreso':[entrada[8]],
+                'precio_catalogo':[entrada[6]]
             }
 
             json.dump(creacion, c_file, indent=4, ensure_ascii=False)
@@ -92,14 +86,14 @@ def formulario_entrada_catalogo():
     
     en4, en5, en6, en7 = st.columns(4)
     with en4:
-        dimension = st.number_input(key='entrada_dimension', label='Dimension', min_value=0.0, step=0.1)
+        dimension = st.number_input(key='entrada_dimension', label='Dimension', min_value=0.0, step=1.0)
     with en5:
-        unidad = st.selectbox(key='entrada_unidad', label='Unidad De Medida',options=['Kg', 'Lt', 'Mt', 'Mt-Cuadrado', 'Pulgada (s)', 'Pz (s)'])
+        unidad = st.selectbox(key='entrada_unidad', label='Unidad De Medida',options=['Kg', 'Lt', 'Mt', 'Mt-Cuadrado', 'Pulgada (s)', 'Pz (s)', 'Ninguno'])
     with en6:
         precio_adquisicion = st.number_input(key='entrada_precio_ad', label='Precio De Compra')
     with en7:
         precio_catalogo = st.number_input(key='entrada_precio_cat', label='Precio De Venta', min_value=1.0)
-
+    
     valor_bruto = precio_catalogo * cantidad
     if precio_catalogo > precio_adquisicion:
         diferencia = precio_catalogo - precio_adquisicion
@@ -138,6 +132,8 @@ def formulario_entrada_catalogo():
         agregar = st.button(label='Agregar', key='confirmar_entrada')
         if agregar:
             entrada_al_catalogo(lista_cache)
+            st.page_link(label=':material/arrow_back: Volver A Inicio', page='inicio.py', use_container_width=True)
+            return
     else:
         st.warning('Tu "Margen de ingreso" es negativo o igual a cero,' \
         ' Tu :red["Precio de adquisicion"] debe ser menor que tu :red["Precio de catalogo"]')
@@ -151,40 +147,97 @@ def ver_inventario_completo():
             
             df = pd.DataFrame(inventario_completo)
             
-            filtro = tgs.st_tags(
-                suggestions=opciones_filtro,
+            filtro = st.multiselect(
+                options=opciones_filtro,
                 label='Buscar Producto',
-                text='Enter Para Mas Productos A La Busqueda',
-                key='filtro_buscar_productos'
+                key='filtro_buscar_productos',
             )
             
             if not filtro:
                 st.dataframe(df.sort_values(by=['nombre'], ascending=False).reset_index(drop=True))
             
             if filtro:
-                
-                filtro_corregido = []
-                
-                for e in filtro:
-                    try:
-                        e = e.strip(). title()
-                        filtro_corregido.append(e)
-                    except AttributeError:
-                        filtro_corregido.append(e)
-
-                df_consulta = df[df['nombre'].isin(filtro_corregido)]
+                df_consulta = df[df['nombre'].isin(filtro)]
                 st.dataframe(df_consulta)
     else:
         st.info('No hay productos en el :red["Inventario"]. ' \
         'Dirigite al sub-menu "Inventario/Agregar Producto"')
         st.write('')
 
+def ajustar_inventario():
+    if os.path.exists(PATH_PRODUCTOS) and os.path.getsize(PATH_PRODUCTOS) > 0:
+        with open(PATH_PRODUCTOS, 'r', encoding='utf-8') as file_edit:
+            inventario_edit = json.load(file_edit)
+            df = pd.DataFrame(inventario_edit)
+            df_copia_simple = pd.DataFrame(inventario_edit)
+            df['dimension_str'] = df['dimension']
+            df['dimension_str'] = df['dimension_str'].astype('str')
+            df['nombre_compuesto'] = df['nombre'] + ' ' + df['dimension_str'] + ' ' + df['u_de_medida']
+            opciones_nombres = df['nombre_compuesto']
+            filtro_ajuste = st.multiselect(
+                label='Buscar Productos',
+                options=opciones_nombres,
+                key='filtro_ajuste'
+            )
+            if filtro_ajuste:
+                df_indice = df.set_index(df['nombre_compuesto'])
+                df_indice = df_indice[['cantidad','precio_compra','precio_catalogo']]
+                df_indice = df_indice[df_indice.index.isin(filtro_ajuste)]
+                edited_df = st.data_editor(df_indice.sort_index(), disabled=['nombre_compuesto'])
+                
+                ajustes_cantidad = edited_df['cantidad']
+                ajustes_precio_compra = edited_df['precio_compra']
+                ajustes_precio_catalogo = edited_df['precio_catalogo']
+                indices_nombre_compuesto = edited_df.index
+                df_seleccion = df[df['nombre_compuesto'].isin(indices_nombre_compuesto)]
+                indices_numericos = df_seleccion.index
+                for ind1, cam1 in zip(indices_numericos, ajustes_cantidad):
+                    df.loc[ind1, 'cantidad'] = cam1
+                for ind2, cam2 in zip(indices_numericos, ajustes_precio_compra):
+                    df.loc[ind2, 'precio_compra'] = cam2
+                for ind3, cam3 in zip(indices_numericos, ajustes_precio_catalogo):
+                    df.loc[ind3, 'precio_catalogo'] = cam3
+                st.write('Antes del Ajuste')
+                st.dataframe(df_copia_simple.loc[indices_numericos])
+                st.write('Despues del Ajuste')
+                st.dataframe(df.loc[indices_numericos].drop(['nombre_compuesto', 'dimension_str'], axis=1))
+                
+                guardar_ajustes = st.button(key='guardar_ajustes', label='Guardar Ajustes')
+                if guardar_ajustes:
+                    nombre_ed = df['nombre']
+                    cantidad_ed = df['cantidad']
+                    unidad_ed = df['unidad']
+                    dimension_ed = df['dimension']
+                    u_de_medida_ed = df['u_de_medida']
+                    precio_compra_ed = df['precio_compra']
+                    precio_catalogo = df['precio_catalogo']
+
+                    with open(PATH_PRODUCTOS, 'w', encoding='utf-8') as edicion_f:
+                        dict_editado = {
+                            'nombre': nombre_ed.tolist(),
+                            'cantidad': cantidad_ed.tolist(),
+                            'unidad': unidad_ed.tolist(),
+                            'dimension': dimension_ed.tolist(),
+                            'u_de_medida': u_de_medida_ed.tolist(),
+                            'precio_compra': precio_compra_ed.tolist(),
+                            'precio_catalogo': precio_catalogo.tolist()
+                        }
+                        json.dump(dict_editado, edicion_f, indent=4, ensure_ascii=False)             
+                        st.write('Exito')
+                        st.page_link(label=':material/arrow_back: Volver A Inicio', page='inicio.py', use_container_width=True)
+                        return
+    else:        
+        return st.warning('No hay productos en el inventario')
+
+st.subheader('Opciones de Inventario')
 seleccion_inventario_opciones = st.pills(
     key='agregar_entrada_al_inventario',
-    label='Opciones De Inventario',
+    label='',
     options=[
         ':material/inventory_2: Inventario',
-        ':material/docs_add_on: Agregar Producto'],
+        ':material/docs_add_on: Agregar Producto',
+        ':material/table_edit: Ajustar Inventario'
+        ],
     selection_mode='single',
     default=':material/inventory_2: Inventario',
     )
@@ -194,3 +247,7 @@ if seleccion_inventario_opciones == ':material/inventory_2: Inventario':
     
 if seleccion_inventario_opciones == ':material/docs_add_on: Agregar Producto':
     formulario_entrada_catalogo()
+
+if seleccion_inventario_opciones == ':material/table_edit: Ajustar Inventario':
+    st.write('En Construccion')
+    ajustar_inventario()
