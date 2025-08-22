@@ -16,7 +16,7 @@ authenticator = stauth.Authenticate(
 )
 
 try:
-    login = authenticator.login(location='sidebar')
+    login = authenticator.login(location='main')
 except Exception as e:
     st.error(e)
 
