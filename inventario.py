@@ -50,16 +50,23 @@ def entrada_al_catalogo(entrada:dict):
                 json.dump(escritura_sin_duplicados, e_file, indent=4, ensure_ascii=False)
                 
                 existencia_de_incorrectos = df_incorrecto['Producto'].tolist()
+
+                df_incorrecto = df_incorrecto.drop(['Mascara'], axis=1)
+                
                 if existencia_de_incorrectos:
                     duplicados_al_agregar = st.chat_message(name='human')
                     with duplicados_al_agregar:
                         st.write(':orange[LOS SIGUIENTES SON DATOS DUPLICADOS]')
-                        st.dataframe(df_incorrecto)
+                        st.dataframe(
+                            df_incorrecto,
+                            column_config={
+                                'Precio Compra':st.column_config.NumberColumn(format='dollar', width=50),
+                                'Precio Venta':st.column_config.NumberColumn(format='dollar',width=50)
+                            }
+                            )
                         return df_entrada
                 else:
-                    exito_al_agregar = st.chat_message(name='human')
-                    with exito_al_agregar:
-                        st.write(':green[DATOS AGREGADOS CON EXITO]')
+                    st.success('Datos Agregados con Exito')
                     return df_entrada
         else:
             
@@ -248,7 +255,13 @@ def formulario_entrada_catalogo():
             solicitud_de_entrada = st.chat_message(name='human')
             with solicitud_de_entrada:
                 st.write(':green[TU SOLICITUD DE INGRESO:]')
-                st.dataframe(df_exitos)
+                st.dataframe(
+                    df_exitos,
+                    column_config={
+                        'Precio Compra':st.column_config.NumberColumn(format='dollar',width=50),
+                        'Precio Venta':st.column_config.NumberColumn(format='dollar',width=50)
+                    }
+                    )
             st.page_link(label=':material/arrow_back: Volver A Inicio', page='inicio.py', use_container_width=True)
             return
 
@@ -280,7 +293,7 @@ def ver_inventario_completo():
             
             if not filtro:
                 return st.dataframe(
-                    df_copia,
+                    df_copia.sort_values(by='Producto Y Modelo', ascending=True).reset_index(drop=True),
                     column_config={
                         'Precio Compra':st.column_config.NumberColumn(format='dollar'),
                         'Precio Venta':st.column_config.NumberColumn(format='dollar')
@@ -290,7 +303,7 @@ def ver_inventario_completo():
             if filtro:
                 df_consulta = df_copia[df_copia['Producto Y Modelo'].isin(filtro)]
                 return st.dataframe(
-                    df_consulta.sort_values(by='Producto Y Modelo', ascending=False).reset_index(drop=True),
+                    df_consulta.sort_values(by='Producto Y Modelo', ascending=True).reset_index(drop=True),
                     column_config={
                         'Precio Compra':st.column_config.NumberColumn(format='dollar'),
                         'Precio Venta':st.column_config.NumberColumn(format='dollar')
@@ -321,7 +334,14 @@ def ajustar_inventario():
                 df_indice = df.set_index(df['Producto Y Modelo'])
                 df_indice = df_indice[['Cantidad','Precio Compra','Precio Venta']]
                 df_indice = df_indice[df_indice.index.isin(filtro_ajuste)]
-                edited_df = st.data_editor(df_indice.sort_index(), disabled=['Producto y Modelo'])
+                edited_df = st.data_editor(
+                    df_indice.sort_index(),
+                    disabled=['Producto y Modelo'],
+                    column_config={
+                        'Precio Compra':st.column_config.NumberColumn(format='dollar'),
+                        'Precio Venta':st.column_config.NumberColumn(format='dollar')
+                    }
+                    )
                 
                 ajustes_cantidad = edited_df['Cantidad']
                 ajustes_precio_compra = edited_df['Precio Compra']
@@ -360,7 +380,13 @@ def ajustar_inventario():
                         exito_edicion = st.chat_message(name='human')
                         with exito_edicion:
                             st.write(':orange[__AJUSTES REALIZADOS__]')
-                            st.dataframe(df.loc[indices_numericos].drop(['Producto Y Modelo', 'dimension_str'], axis=1))
+                            st.dataframe(
+                                df.loc[indices_numericos].drop(['Producto Y Modelo', 'dimension_str'], axis=1),
+                                column_config={
+                                    'Precio Compra':st.column_config.NumberColumn(format='dollar'),
+                                    'Precio Venta':st.column_config.NumberColumn(format='dollar')
+                                }
+                                )
                             st.badge(color='green', label='Datos Guardados :material/check:')
                         st.page_link(label=':material/arrow_back: Volver A Inicio', page='inicio.py', use_container_width=True)
                         return
@@ -392,7 +418,13 @@ def eliminar_entradas():
             if seleccion_eliminar:
                 
                 df_muestra = df[['Producto Y Modelo','Cantidad','Unidad','Precio Compra','Precio Venta']]
-                st.dataframe(df_muestra[df_muestra['Producto Y Modelo'].isin(seleccion_eliminar)])
+                st.dataframe(
+                    df_muestra[df_muestra['Producto Y Modelo'].isin(seleccion_eliminar)],
+                    column_config={
+                        'Precio Compra':st.column_config.NumberColumn(format='dollar'),
+                        'Precio Venta':st.column_config.NumberColumn(format='dollar')
+                    }
+                    )
                 st.info(':material/lightbulb: Al dar click en :red[Eliminar] ' \
                 'los cambios no pueden deshacercerse.')
 
