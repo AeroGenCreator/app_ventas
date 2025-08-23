@@ -1,9 +1,17 @@
-import streamlit_tags as tgs
-import streamlit as st
+"""Todas las funciones de el Menu Inventario se
+manejan en este archivo"""
+
+#Modulos Python
 import os
 import json
+#Modulos Propios
+
+#Modulos de terceros
+import streamlit_tags as tgs
+import streamlit as st
 import pandas as pd
 
+# Direccion json para el guardado de productos.
 PATH_PRODUCTOS = 'catalogo_productos.json'
 
 def entrada_al_catalogo(entrada:dict):
@@ -97,15 +105,17 @@ def entrada_al_catalogo(entrada:dict):
 
 def formulario_entrada_catalogo():
     
+    st.write('__FORMULARIO DE ENTRADAS NUEVAS__')
+
     df = pd.DataFrame(
         {
-            'Producto':[''],
-            'Cantidad':[0],
-            'Unidad':'',
-            'Dimension':[0.00],
-            'U. Medida':[''],
-            'Precio Compra':[0.00],
-            'Precio Venta':[0.00]
+            'Producto':[None],
+            'Cantidad':[None],
+            'Unidad':[None],
+            'Dimension':[-1.00],
+            'U. Medida':[None],
+            'Precio Compra':[None],
+            'Precio Venta':[None]
         }
     )
     
@@ -190,48 +200,57 @@ def formulario_entrada_catalogo():
         }
         )
 
-    st.info('Todos las nuevas entradas requieren un valor distinto de "None"\n' \
-    'y un "Nombre de Producto" de lo contrario dicha fila no se guardara. Si dejas filas en blanco\n ' \
-    'no se guardaran tampoco')
+    st.info(':material/lightbulb: Todos las nuevas entradas requieren un valor distinto de :red[None].\n' \
+    'Todos los :red[Campos] son obligatorios, de lo contrario dicha fila no se guardara. Si dejas filas en blanco\n ' \
+    'no se guardan.')
 
     agregar = st.button(label='Agregar', key='confirmar_entrada')
     
     if agregar:
-        df_editable['Producto'] = df_editable['Producto'].apply(lambda x: x.title().strip())
-        df_compuesto = df_editable
 
-        df_compuesto['Dimension'] = df_compuesto['Dimension'].astype('str')
-        df_compuesto['Entrada'] = df_compuesto['Producto']+' '+df_compuesto['Dimension']+' '+df_compuesto['U. Medida']
-        df_compuesto = df_compuesto.drop(['Producto', 'Dimension', 'U. Medida'], axis=1)
+        df_editable = df_editable.dropna()
         
-        orden_columnas = ['Entrada','Cantidad','Unidad','Precio Compra', 'Precio Venta']
-        df_compuesto = df_compuesto.reindex(columns=orden_columnas)
+        if  df_editable.empty == True:
+            st.warning('Ingrese :red[Valores] en la :red[Tabla]')
+            return
         
-        lista_repetidos = []
-        df_compuesto['Mascara'] = df_compuesto['Entrada'].apply(lambda x: lista_repetidos.append(x) if x not in lista_repetidos else 1)
-        df_compuesto = df_compuesto[df_compuesto['Mascara'] == 1]
+        else:
 
-        indices = df_compuesto.index
+            df_editable['Producto'] = df_editable['Producto'].apply(lambda x: x.title().strip())
+            df_compuesto = df_editable
 
-        df_editable = df_editable.drop(index=indices, axis=0)
+            df_compuesto['Dimension'] = df_compuesto['Dimension'].astype('str')
+            df_compuesto['Entrada'] = df_compuesto['Producto']+' '+df_compuesto['Dimension']+' '+df_compuesto['U. Medida']
+            df_compuesto = df_compuesto.drop(['Producto', 'Dimension', 'U. Medida'], axis=1)
+            
+            orden_columnas = ['Entrada','Cantidad','Unidad','Precio Compra', 'Precio Venta']
+            df_compuesto = df_compuesto.reindex(columns=orden_columnas)
+            
+            lista_repetidos = []
+            df_compuesto['Mascara'] = df_compuesto['Entrada'].apply(lambda x: lista_repetidos.append(x) if x not in lista_repetidos else 1)
+            df_compuesto = df_compuesto[df_compuesto['Mascara'] == 1]
 
-        dict_cache = {
-            'Producto':df_editable['Producto'].tolist(),
-            'Cantidad':df_editable['Cantidad'].tolist(),
-            'Unidad':df_editable['Unidad'].tolist(),
-            'Dimension':df_editable['Dimension'].tolist(),
-            'U. Medida':df_editable['U. Medida'].tolist(),
-            'Precio Compra':df_editable['Precio Compra'].tolist(),
-            'Precio Venta':df_editable['Precio Venta'].tolist()
-        }
-        
-        df_exitos = entrada_al_catalogo(dict_cache)
-        solicitud_de_entrada = st.chat_message(name='human')
-        with solicitud_de_entrada:
-            st.write(':green[TU SOLICITUD DE INGRESO:]')
-            st.dataframe(df_exitos)
-        st.page_link(label=':material/arrow_back: Volver A Inicio', page='inicio.py', use_container_width=True)
-        return
+            indices = df_compuesto.index
+
+            df_editable = df_editable.drop(index=indices, axis=0)
+
+            dict_cache = {
+                'Producto':df_editable['Producto'].tolist(),
+                'Cantidad':df_editable['Cantidad'].tolist(),
+                'Unidad':df_editable['Unidad'].tolist(),
+                'Dimension':df_editable['Dimension'].tolist(),
+                'U. Medida':df_editable['U. Medida'].tolist(),
+                'Precio Compra':df_editable['Precio Compra'].tolist(),
+                'Precio Venta':df_editable['Precio Venta'].tolist()
+            }
+            
+            df_exitos = entrada_al_catalogo(dict_cache)
+            solicitud_de_entrada = st.chat_message(name='human')
+            with solicitud_de_entrada:
+                st.write(':green[TU SOLICITUD DE INGRESO:]')
+                st.dataframe(df_exitos)
+            st.page_link(label=':material/arrow_back: Volver A Inicio', page='inicio.py', use_container_width=True)
+            return
 
 def ver_inventario_completo():
     
@@ -255,18 +274,30 @@ def ver_inventario_completo():
 
             filtro = st.multiselect(
                 options=opciones_filtro,
-                label='__BUSCAR PRODUCTO__',
+                label='__BUSCAR PRODUCTOS__',
                 key='filtro_buscar_productos',
             )
             
             if not filtro:
-                st.dataframe(df_copia)
+                return st.dataframe(
+                    df_copia,
+                    column_config={
+                        'Precio Compra':st.column_config.NumberColumn(format='dollar'),
+                        'Precio Venta':st.column_config.NumberColumn(format='dollar')
+                    }
+                    )
             
             if filtro:
                 df_consulta = df_copia[df_copia['Producto Y Modelo'].isin(filtro)]
-                st.dataframe(df_consulta.sort_values(by='Producto Y Modelo', ascending=False).reset_index(drop=True))
+                return st.dataframe(
+                    df_consulta.sort_values(by='Producto Y Modelo', ascending=False).reset_index(drop=True),
+                    column_config={
+                        'Precio Compra':st.column_config.NumberColumn(format='dollar'),
+                        'Precio Venta':st.column_config.NumberColumn(format='dollar')
+                        }
+                    )
     else:
-        st.info('No hay productos en el :orange["Inventario"]. ' \
+        return st.info('No hay productos en el :orange["Inventario"]. ' \
         'Dirigite al sub-menu "Inventario/Agregar Producto"')
 
 def ajustar_inventario():
@@ -282,7 +313,7 @@ def ajustar_inventario():
             df['Producto Y Modelo'] = df['Producto'] + ' ' + df['dimension_str'] + ' ' + df['U. Medida']
             opciones_nombres = df['Producto Y Modelo']
             filtro_ajuste = st.multiselect(
-                label='__BUSCAR PRODUCTO__',
+                label='__BUSCAR PRODUCTOS__',
                 options=opciones_nombres,
                 key='filtro_ajuste'
             )
@@ -309,12 +340,6 @@ def ajustar_inventario():
                 for ind3, cam3 in zip(indices_numericos, ajustes_precio_venta):
                     df.loc[ind3, 'Precio Venta'] = cam3
                 
-                st.write('Antes del Ajuste')
-                st.dataframe(df_copia_simple.loc[indices_numericos])
-                
-                st.write('Despues del Ajuste')
-                st.dataframe(df.loc[indices_numericos].drop(['Producto Y Modelo', 'dimension_str'], axis=1))
-                
                 guardar_ajustes = st.button(key='guardar_ajustes', label=':green[Guardar Ajustes]')
                 
                 if guardar_ajustes:
@@ -334,13 +359,85 @@ def ajustar_inventario():
                         json.dump(dict_editado, edicion_f, indent=4, ensure_ascii=False)             
                         exito_edicion = st.chat_message(name='human')
                         with exito_edicion:
-                            st.write('Edicion Guardada')
+                            st.write(':orange[__AJUSTES REALIZADOS__]')
+                            st.dataframe(df.loc[indices_numericos].drop(['Producto Y Modelo', 'dimension_str'], axis=1))
+                            st.badge(color='green', label='Datos Guardados :material/check:')
                         st.page_link(label=':material/arrow_back: Volver A Inicio', page='inicio.py', use_container_width=True)
                         return
-    else:        
+    else:
         return st.warning('No hay productos en el inventario')
 
-st.subheader(':material/inventory_2: Inventario Menu')
+def eliminar_entradas():
+
+    if os.path.exists(PATH_PRODUCTOS) and  os.path.getsize(PATH_PRODUCTOS) > 0:
+
+        with open(PATH_PRODUCTOS, 'r', encoding='utf-8') as l_file:
+
+            datos = json.load(l_file)
+            df = pd.DataFrame(datos)
+            
+            df['N. Dimension'] = df['Dimension']
+            df['N. Dimension'] = df['N. Dimension'].astype('str')
+
+            df['Producto Y Modelo'] = df['Producto']+' '+df['Dimension']+' '+df['U. Medida']
+
+            opciones_seleccion = df['Producto Y Modelo']
+
+            seleccion_eliminar = st.multiselect(
+                key='seleccion_eliminar',
+                label='__BUSCAR PRODUCTOS__',
+                options=opciones_seleccion
+            )
+
+            if seleccion_eliminar:
+                
+                df_muestra = df[['Producto Y Modelo','Cantidad','Unidad','Precio Compra','Precio Venta']]
+                st.dataframe(df_muestra[df_muestra['Producto Y Modelo'].isin(seleccion_eliminar)])
+                st.info(':material/lightbulb: Al dar click en :red[Eliminar] ' \
+                'los cambios no pueden deshacercerse.')
+
+                eliminar_seleccionados = st.button(
+                    label=':red[:material/delete: Eliminar Seleccionados]',
+                    key='eliminar_seleccionados'
+                    )
+                
+                if eliminar_seleccionados:
+
+                    df_muestra = df_muestra[df_muestra['Producto Y Modelo'].isin(seleccion_eliminar)]
+                    indices = df_muestra.index
+                    
+                    df = df.drop(index=indices)
+        
+                    with open(PATH_PRODUCTOS, 'w', encoding='utf-8') as g_file:
+                        
+                        entradas_corregidas = {
+                            'Producto':df['Producto'].tolist(),
+                            'Cantidad':df['Cantidad'].tolist(),
+                            'Unidad':df['Unidad'].tolist(),
+                            'Dimension':df['Dimension'].tolist(),
+                            'U. Medida':df['U. Medida'].tolist(),
+                            'Precio Compra':df['Precio Compra'].tolist(),
+                            'Precio Venta':df['Precio Venta'].tolist()
+                        }
+                        
+                        json.dump(entradas_corregidas, g_file,indent=4, ensure_ascii=False)
+                        
+                        correcto_eliminar = st.chat_message(name='human')
+                        
+                        with correcto_eliminar:
+                            st.write('Productos Eliminados Correcatamente')
+                        
+                        return st.page_link(
+                            label=':material/arrow_back: Volver A Inicio',
+                            page='inicio.py',
+                            use_container_width=True
+                            )
+    
+    else:
+        st.warning('No hay datos en el :red[Inventario]')
+        return
+    
+st.subheader(':material/inventory_2: Inventario - Menu')
 
 seleccion_inventario_opciones = st.pills(
     key='agregar_entrada_al_inventario',
@@ -365,4 +462,4 @@ if seleccion_inventario_opciones == ':material/table_edit: Ajustar Inventario':
     ajustar_inventario()
 
 if seleccion_inventario_opciones == ':material/delete: Eliminar Producto':
-    st.write('En Construccion')
+    eliminar_entradas()

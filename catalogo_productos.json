@@ -4,20 +4,35 @@
         "Soldadura",
         "Loza Rojiza Piedra Rio",
         "Clavos",
-        "Tubo Cpvc"
+        "Tubo Cpvc",
+        "Lija Arena 88Mm",
+        "Martillo Phillips",
+        "Broca 1/4 Urrea",
+        "Broca 1/4 Prime",
+        "Shampoo"
     ],
     "Cantidad": [
         4.0,
-        1.0,
         4.0,
-        2.0,
-        3.0
+        3.0,
+        5.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        5.0,
+        40.0
     ],
     "Unidad": [
         "Pz (s)",
         "Pz (s)",
         "Caja (s)",
         "Bolsa (s)",
+        "Pz (s)",
+        "Pz (s)",
+        "Pz (s)",
+        "Pz (s)",
+        "Pz (s)",
         "Pz (s)"
     ],
     "Dimension": [
@@ -25,27 +40,47 @@
         "1.5",
         "35.0",
         "0.5",
-        "1.0"
+        "1.0",
+        "0.25",
+        "-1",
+        "-1.0",
+        "-1.0",
+        "0.5"
     ],
     "U. Medida": [
         "Lt (s)",
         "Mt (s)",
         "Mt (s) Cuadrado (s)",
         "Kg (s)",
-        "Pulgada (s)"
+        "Pulgada (s)",
+        "Mt (s) Cuadrado (s)",
+        "Ninguno",
+        "Ninguno",
+        "Ninguno",
+        "Lt (s)"
     ],
     "Precio Compra": [
         200.0,
-        10.0,
+        40.0,
         590.0,
-        20.0,
-        67.0
+        45.0,
+        67.0,
+        33.0,
+        50.0,
+        25.0,
+        45.0,
+        10.0
     ],
     "Precio Venta": [
         500.0,
-        100.0,
+        50.0,
         890.0,
-        200.0,
-        145.0
+        70.0,
+        145.0,
+        56.0,
+        100.0,
+        56.0,
+        89.0,
+        20.0
     ]
 }
