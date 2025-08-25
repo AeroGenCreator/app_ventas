@@ -1,3 +1,6 @@
+import lenguaje
+
 import streamlit as st
 
-st.title('__Tienda__')
+l = lenguaje.tu_idioma()
+st.title(l.phrase[0])

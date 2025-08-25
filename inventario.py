@@ -4,7 +4,9 @@ manejan en este archivo"""
 #Modulos Python
 import os
 import json
+
 #Modulos Propios
+import lenguaje
 
 #Modulos de terceros
 import streamlit_tags as tgs
@@ -469,22 +471,23 @@ def eliminar_entradas():
         st.warning('No hay datos en el :red[Inventario]')
         return
     
-st.subheader(':material/inventory_2: Inventario - Menu')
+l = lenguaje.tu_idioma()
+st.title(f':material/inventory_2: {l.phrase[2]}')
 
 seleccion_inventario_opciones = st.pills(
     key='agregar_entrada_al_inventario',
     label='',
     options=[
-        ':material/inventory_2: Inventario',
+        f':material/inventory_2: {l.phrase[2]}',
         ':material/docs_add_on: Agregar Producto',
         ':material/table_edit: Ajustar Inventario',
         ':material/delete: Eliminar Producto'
         ],
     selection_mode='single',
-    default=':material/inventory_2: Inventario',
+    default=f':material/inventory_2: {l.phrase[2]}',
     )
 
-if seleccion_inventario_opciones == ':material/inventory_2: Inventario':
+if seleccion_inventario_opciones == f':material/inventory_2: {l.phrase[2]}':
     ver_inventario_completo()    
     
 if seleccion_inventario_opciones == ':material/docs_add_on: Agregar Producto':
