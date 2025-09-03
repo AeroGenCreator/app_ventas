@@ -501,7 +501,7 @@ def ajustar_inventario():
                         column_config={
                             'Producto Y Modelo':st.column_config.TextColumn(disabled=True),
                             'Clave SAT':st.column_config.TextColumn(disabled=True,width=80),
-                            'Cantidad':st.column_config.NumberColumn(width=40),
+                            'Cantidad':st.column_config.NumberColumn(width=40, min_value=0),
                             'Porcentaje Ganancia':st.column_config.NumberColumn(format='percent',width=60,max_value=1,min_value=0.01),
                             'Precio Venta':st.column_config.NumberColumn(disabled=True,format='dollar',width=60)
                         }

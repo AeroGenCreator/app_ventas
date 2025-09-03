@@ -3,3 +3,4 @@ pandas
 pytest
 streamlit-authenticator
 streamlit-tags
+fpdf2
