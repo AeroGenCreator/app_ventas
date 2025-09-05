@@ -3,13 +3,12 @@ import json
 import lenguaje
 
 from fpdf import FPDF
-from fpdf.enums import TableCellFillMode
 import streamlit as st
 import pandas as pd
 
 l=lenguaje.tu_idioma()
 
-st.title(l.phrase[3])
+st.title(f':material/request_quote: {l.phrase[3]}')
 
 RUTA_PRODUCTOS = 'catalogo_productos.json'
 
@@ -72,7 +71,7 @@ with open(RUTA_PRODUCTOS, 'r', encoding='utf-8') as file:
     with col2:
         limpiar_tabla = st.button('Limpiar Tabla',width=200)
     with col3:
-        imprimir = st.button('Imprimir', type='primary', width=200)
+        imprimir = st.button('Imprimir', type='secondary', width=200)
 
     if edicion.empty:
         del st.session_state.df
@@ -123,37 +122,88 @@ with open(RUTA_PRODUCTOS, 'r', encoding='utf-8') as file:
     
     if imprimir:
 
-        # Creamos un nuevo objeto PDF
-        pdf = FPDF(orientation='portrait',unit='mm',format='Letter')
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
+        edicion = edicion.dropna(axis=0,how='any',subset='Producto Y Modelo')
+        edicion = edicion.drop_duplicates(subset='Producto Y Modelo')
+        if edicion.empty:
+            st.session_state.df = DF_VACIO
+        else:
+            linker = df.loc[edicion['Producto Y Modelo']]
+            
+            union = pd.merge(
+                edicion,
+                linker,
+                how='left',
+                on='Producto Y Modelo'
+                )
+            
+            union['Precio Venta'] = round(union['Precio Venta'])
+            union['Precio U.'] = union['Precio Venta']
+            union['Total'] = union['Unidades'] * union['Precio Venta']
+            union['Existencias'] = union['Cantidad']
 
-        # Agrega el título
-        pdf.cell(200, 10, txt="COTIZACION", ln=True, markdown=True)
+            union = union.reindex(columns=['Unidades','Producto Y Modelo','Precio U.','Total','Existencias'])
+            
+            cotizacion_total += union['Total'].sum()
+            productos_en_cotizacion += union['Unidades'].sum()
+
+            st.session_state.productos = productos_en_cotizacion
+            st.session_state.total = cotizacion_total
+            st.session_state.df = union
+
+        class PDF(FPDF):
+            def header(self):
+                self.set_text_color(0,51,0)
+                self.image('providencia_logo.jpeg', 10, 8, 16)
+                self.set_font(family='helvetica', size=12, style='B')
+                self.cell(20,6,txt='Ferreteria La Providecia: Cotizacion', border=False,ln=True, center=True,align='R')
+                self.ln(15)
+            def footer(self):
+                self.set_y(-10)
+                self.set_font('helvetica',style='I',size=9)
+                self.cell(0,6,txt=f'Pagina {self.page_no()}/{{nb}}', center=True)
+            
+        # Creamos un nuevo objeto PDF
+        pdf = PDF(orientation='portrait',unit='mm',format='Letter')
+
+        # Inicializo el auto salto de pagina
+        pdf.set_auto_page_break(auto=True, margin=10)
+
+        pdf.add_page()
+        pdf.set_font("Arial", size=10)
+        pdf.set_line_width(0.1)
+        pdf.set_draw_color(245,222,179)
+        pdf.set_fill_color(245,222,179)#204,255,229
+        pdf.set_text_color(0,51,0)
+
+        pdf.cell(16,6,txt='Uni.',border=True,align='C') 
+        pdf.cell(122,6,txt='Producto Y Modelo',border=True,align='C') 
+        pdf.cell(29,6,txt='Precio U.',border=True,align='C') 
+        pdf.cell(29,6,txt='Total', ln=True,border=True,align='C')
+        
         pdf.cell(0,6,fill=True,ln=True)
 
         # Agrega los datos de la tabla (st.session_state.df)
         # Tendrás que iterar sobre las filas del DataFrame para agregar celdas al PDF
         for index, row in st.session_state.df.iterrows():
-            pdf.cell(
-                0,
-                6,
-                txt=f'- {row['Unidades']} {row['Producto Y Modelo']} - $ {row['Precio U.']} - $ {row['Total']}',
-                border=True,
-                ln=True
-                )
-            
+            pdf.cell(16,6,txt=f'{row['Unidades']}',border=True,align='C') 
+            pdf.cell(122,6,txt=f'{row['Producto Y Modelo']}',border=True) 
+            pdf.cell(29,6,txt=f'$ {row['Precio U.']}',border=True,align='R') 
+            pdf.cell(29,6,txt=f'$ {row['Total']}', ln=True,border=True,align='R')
+
+        half_page = (pdf.w / 2) - 10
+
         pdf.cell(0,6,fill=True,ln=True)
-        pdf.cell(0,6,txt=f'Total de Productos: {st.session_state.productos}', border=True,ln=True)
-        pdf.cell(0,6,fill=True,ln=True)
-        pdf.cell(0,6,txt=f'Total De Cotizacion: $ {st.session_state.total}', border=True,ln=True)
+        pdf.cell(half_page,6,txt=f'Total de Productos: {st.session_state.productos}', border=True, align='C')
+        pdf.cell(half_page,6,txt=f'Total De Cotizacion: $ {st.session_state.total}', border=True,align='C',ln=True)
         # Guarda el PDF en un archivo temporal
         pdf_output = bytes(pdf.output(dest='S'))
         
         # Proporciona el botón de descarga
         st.download_button(
             label="Descargar PDF",
+            type='primary',
             data=pdf_output,
             file_name="cotizacion.pdf",
-            mime="application/pdf"
+            mime="application/pdf",
+            width=800
         )

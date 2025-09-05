@@ -167,9 +167,10 @@ def formulario_entrada_catalogo():
             ),
             'Producto':st.column_config.TextColumn(
                 width=150,
-                help=':orange[Producto]',
+                help=':orange[Producto] (Maximo 28 Caracteres)',
                 required=True,
-                pinned=True
+                pinned=True,
+                max_chars=27
             ),
             'Cantidad':st.column_config.NumberColumn(
                 width=40,
@@ -456,7 +457,7 @@ def ajuste_cantidad_cpp():
                         json.dump(nuevos_datos, file_guardar, indent=4, ensure_ascii=False)
                         st.dataframe(
                             df_muestra[df_muestra.index.isin(df_ajuste.index)],
-                            hide_index=True,
+                            column_order=['Cantidad','Precio Compra','Porcentaje Ganancia','Precio Venta'],
                             column_config={
                                 'Precio Compra':st.column_config.NumberColumn(format='dollar',width=50),
                                 'Porcentaje Ganancia':st.column_config.NumberColumn(format='percent',width=50),
