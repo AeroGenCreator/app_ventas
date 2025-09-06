@@ -1,4 +1,6 @@
-#!/media/andres/ExtraSSD/workspace_data_science/git_repositories/app_ventas/.venv/bin/python3
+#!/bin/sh
+'''exec' "/home/andres/Data Science/Repositorios/app_ventas/.venv/bin/python3" "$0" "$@"
+' '''
 # -*- coding: utf-8 -*-
 import re
 import sys

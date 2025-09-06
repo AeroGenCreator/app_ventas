@@ -44,8 +44,8 @@ try:
         productos_en_cotizacion = 0
 
         # Asigno el DataFrame vacio y lo contadores al cache de streamlit
-        if 'df' not in st.session_state:
-            st.session_state.df = DF_VACIO
+        if 'df_c' not in st.session_state:
+            st.session_state.df_c = DF_VACIO
         if 'total'not in st.session_state:
             st.session_state.total = cotizacion_total
         if 'productos' not in st.session_state:
@@ -53,7 +53,7 @@ try:
         
         # Creo un DataFrame editable con filas dinamicas, asigno la salida a "edicion"
         edicion = st.data_editor(
-            data=st.session_state.df,
+            data=st.session_state.df_c,
             key='editor_cotizacion',
             num_rows='dynamic',
             column_order=['Unidades', 'Producto Y Modelo','Precio U.' ,'Total','Existencias'],
@@ -86,7 +86,7 @@ try:
 
         # Limpio el cache de streamlit para la situacion de limpiar una tabla.
         if edicion.empty:
-            del st.session_state.df
+            del st.session_state.df_c
             del st.session_state.total
             del st.session_state.productos
 
@@ -94,12 +94,12 @@ try:
         # Para el caso de tener eliminados los caches en streamlit.
         if limpiar_tabla:
             try:
-                st.session_state.df = DF_VACIO
+                st.session_state.df_c = DF_VACIO
                 st.session_state.total = cotizacion_total
                 st.session_state.productos = productos_en_cotizacion
             except(KeyError):
                 if 'df' not in st.session_state:
-                    st.session_state.df = DF_VACIO
+                    st.session_state.df_c = DF_VACIO
                 if 'total' not in st.session_state:
                     st.session_state.total = cotizacion_total
                 if 'productos' not in st.session_state:
@@ -112,7 +112,7 @@ try:
             edicion = edicion.dropna(axis=0,how='any',subset='Producto Y Modelo')
             edicion = edicion.drop_duplicates(subset='Producto Y Modelo')
             if edicion.empty:
-                st.session_state.df = DF_VACIO
+                st.session_state.df_c = DF_VACIO
             else:
                 linker = df.loc[edicion['Producto Y Modelo']]
                 
@@ -135,7 +135,7 @@ try:
                 # Por ultimo se asignas al cache los nuevos datos para ser mostrados en la pantalla.
                 st.session_state.productos = productos_en_cotizacion
                 st.session_state.total = cotizacion_total
-                st.session_state.df = union
+                st.session_state.df_c = union
         
         if imprimir:
             # Al impirmir, repito el calculo anterior.
@@ -143,7 +143,7 @@ try:
             edicion = edicion.dropna(axis=0,how='any',subset='Producto Y Modelo')
             edicion = edicion.drop_duplicates(subset='Producto Y Modelo')
             if edicion.empty:
-                st.session_state.df = DF_VACIO
+                st.session_state.df_c = DF_VACIO
             else:
                 linker = df.loc[edicion['Producto Y Modelo']]
                 
@@ -166,7 +166,7 @@ try:
 
                 st.session_state.productos = productos_en_cotizacion
                 st.session_state.total = cotizacion_total
-                st.session_state.df = union
+                st.session_state.df_c = union
             # Creo una clase PDF con FPDF, la clase contendra header() y footer(), configuro alineacion, y colores
             class PDF(FPDF):
                 def header(self):
@@ -205,7 +205,7 @@ try:
 
             # Itero sobre los datos que estan en la tabla final guardada en el cache de streamlit
             # y los asigno a su celda pdf.
-            for index, row in st.session_state.df.iterrows():
+            for index, row in st.session_state.df_c.iterrows():
                 pdf.cell(16,6,txt=f'{row['Unidades']}',border=True,align='C') 
                 pdf.cell(122,6,txt=f'{row['Producto Y Modelo']}',border=True) 
                 pdf.cell(29,6,txt=f'$ {row['Precio U.']}',border=True,align='R') 
