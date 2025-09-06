@@ -26,7 +26,7 @@ try:
         df = df.set_index('Producto Y Modelo',drop=True)
         
         # Las opciones de busqueda seran Producto Y Modelo
-        OPCIONES = df.index
+        OPCIONES = df.index.to_list()
         
         #Creo un DataFrame vacio
         DF_VACIO = pd.DataFrame(
